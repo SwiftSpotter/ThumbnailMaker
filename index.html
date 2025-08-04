@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔥 YouTube Thumbnail Generator</title>
+    <style>
+        /* Universal box-sizing for consistent layout */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Body styling: font, background gradient, text color, min-height for full viewport, padding */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: #ecf0f1;
+            min-height: 100vh; /* Ensure body takes full viewport height */
+            padding: 20px;
+            display: flex; /* Use flexbox for centering content */
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Main container for the two panels */
+        .container {
+            max-width: 1400px;
+            width: 100%; /* Make it fluid */
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Two columns for desktop */
+            gap: 30px;
+            /* Adjust height to fit within padding, ensuring scrollability if content overflows */
+            height: calc(100vh - 40px);
+            overflow-y: auto; /* Allow scrolling if content is too tall */
+            border-radius: 15px; /* Rounded corners for the container */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); /* Subtle shadow */
+        }
+
+        /* Styling for individual panels (left and right) */
+        .panel {
+            background: rgba(52, 73, 94, 0.9); /* Slightly transparent dark background */
+            border-radius: 15px; /* Rounded corners */
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); /* Soft shadow */
+            backdrop-filter: blur(10px); /* Frosted glass effect */
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Specific styling for the left panel (controls) */
+        .left-panel {
+            overflow-y: auto; /* Allow scrolling within the left panel if controls overflow */
+        }
+
+        /* Specific styling for the right panel (preview) */
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Center content vertically */
+            align-items: center; /* Center content horizontally */
+        }
+
+        /* Main title styling */
+        .title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #e74c3c; /* Red color for emphasis */
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* Text shadow for depth */
+        }
+
+        /* Styling for each functional section (e.g., File Selection, Text Content) */
+        .section {
+            margin-bottom: 25px;
+            background: rgba(44, 62, 80, 0.7); /* Slightly lighter transparent background */
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(127, 140, 141, 0.3); /* Subtle border */
+        }
+
+        /* Title for each section */
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #ecf0f1;
+            display: flex;
+            align-items: center;
+            gap: 8px; /* Space between icon and text */
+        }
+
+        /* Grouping for form elements */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        /* Horizontal alignment for form elements */
+        .form-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+            flex-wrap: wrap; /* Allow items to wrap on smaller screens */
+        }
+
+        /* Label styling */
+        label {
+            font-weight: 500;
+            min-width: 80px; /* Minimum width for labels */
+            color: #ecf0f1;
+        }
+
+        /* Hide default file input */
+        input[type="file"] {
+            display: none;
+        }
+
+        /* Styling for custom file input label and general buttons */
+        .file-input-label, .btn {
+            background: linear-gradient(45deg, #3498db, #2980b9); /* Blue gradient */
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px; /* Rounded buttons */
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease; /* Smooth transitions for hover effects */
+            display: inline-block;
+            text-decoration: none;
+            font-size: 14px;
+            text-align: center; /* Center text in buttons */
+        }
+
+        /* Hover effects for buttons and file input labels */
+        .file-input-label:hover, .btn:hover {
+            transform: translateY(-2px); /* Lift effect */
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4); /* Shadow on hover */
+        }
+
+        /* Secondary button style (purple gradient) */
+        .btn-secondary {
+            background: linear-gradient(45deg, #9b59b6, #8e44ad);
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 5px 15px rgba(155, 89, 182, 0.4);
+        }
+
+        /* Warning button style (orange gradient) */
+        .btn-warning {
+            background: linear-gradient(45deg, #e67e22, #d35400);
+        }
+
+        .btn-warning:hover {
+            box-shadow: 0 5px 15px rgba(230, 126, 34, 0.4);
+        }
+
+        /* Success button style (green gradient) */
+        .btn-success {
+            background: linear-gradient(45deg, #27ae60, #229954);
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4);
+        }
+
+        /* Danger button style (red gradient) */
+        .btn-danger {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+        }
+
+        /* Styling for file status messages */
+        .file-status {
+            color: #bdc3c7;
+            font-size: 13px;
+            flex-grow: 1; /* Allow it to take available space */
+            margin-left: 10px;
+        }
+
+        .file-status.success {
+            color: #27ae60; /* Green for success */
+        }
+
+        /* Styling for select, number, and text inputs */
+        select, input[type="number"], input[type="text"] {
+            background: rgba(44, 62, 80, 0.8);
+            color: #ecf0f1;
+            border: 1px solid rgba(127, 140, 141, 0.5);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 14px;
+            flex-grow: 1; /* Allow inputs to grow */
+            min-width: 100px; /* Minimum width for inputs */
+        }
+
+        select {
+            min-width: 150px;
+        }
+
+        input[type="number"], input[type="text"], input[type="color"] {
+            width: 80px; /* Fixed width for number and color inputs */
+            padding: 5px; /* Adjust padding for color input */
+        }
+
+        /* Textarea styling */
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            background: rgba(44, 62, 80, 0.8);
+            color: #ecf0f1;
+            border: 1px solid rgba(127, 140, 141, 0.5);
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 14px;
+            font-family: inherit; /* Inherit font from body */
+            resize: vertical; /* Allow vertical resizing */
+        }
+
+        /* Focus styles for inputs and textareas */
+        textarea:focus, select:focus, input:focus {
+            outline: none;
+            border-color: #3498db; /* Blue border on focus */
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.3); /* Blue shadow on focus */
+        }
+
+        /* Font controls layout */
+        .font-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap; /* Allow wrapping for font controls */
+        }
+
+        /* Status indicator for font selection */
+        .font-status {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: rgba(39, 174, 96, 0.2);
+            color: #27ae60;
+            white-space: nowrap; /* Prevent wrapping for status text */
+        }
+
+        /* Grouping for action buttons */
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap; /* Allow buttons to wrap */
+            justify-content: center; /* Center buttons */
+        }
+
+        /* General status message styling */
+        .status {
+            text-align: center;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 15px;
+            font-weight: 500;
+        }
+
+        .status.success {
+            background: rgba(39, 174, 96, 0.2);
+            color: #27ae60;
+        }
+
+        .status.error {
+            background: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+        }
+
+        .status.warning {
+            background: rgba(230, 126, 34, 0.2);
+            color: #e67e22;
+        }
+
+        /* Preview section layout */
+        .preview-section {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Center preview vertically */
+            align-items: center; /* Center preview horizontally */
+            padding: 10px; /* Add some padding around the preview area */
+            position: relative; /* Needed for absolute positioning of loading indicator */
+        }
+
+        /* Preview title */
+        .preview-title {
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #ecf0f1;
+        }
+
+        /* Container for the actual thumbnail preview */
+        .preview-container {
+            flex-grow: 1;
+            background: #1a1a1a; /* Dark background for the canvas area */
+            border-radius: 10px;
+            border: 2px solid rgba(127, 140, 141, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px; /* Minimum height for preview area */
+            overflow: hidden; /* Hide overflow from canvas */
+            width: 100%; /* Make preview container responsive */
+            max-width: 1280px; /* Max width matching thumbnail width */
+            aspect-ratio: 16 / 9; /* Maintain 16:9 aspect ratio */
+        }
+
+        /* Styling for the generated canvas image */
+        .preview-canvas {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto; /* Allow image to scale down */
+            height: auto; /* Allow image to scale down */
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            display: block; /* Remove extra space below image */
+        }
+
+        /* Placeholder text for empty preview */
+        .preview-placeholder {
+            color: #7f8c8d;
+            font-size: 16px;
+            text-align: center;
+            padding: 40px;
+        }
+
+        /* Instructions section */
+        .instructions {
+            background: rgba(44, 62, 80, 0.5);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 14px;
+            text-align: center;
+            color: #bdc3c7;
+        }
+
+        /* Loading indicator styling */
+        .loading {
+            display: none; /* Hidden by default */
+            position: absolute; /* Position relative to .preview-section */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 10; /* Ensure it's on top */
+        }
+
+        /* Spinner animation */
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite; /* Spin animation */
+            margin: 0 auto 10px;
+        }
+
+        /* Keyframes for spinner animation */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive adjustments for smaller screens */
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr; /* Single column layout */
+                gap: 20px;
+                height: auto; /* Allow height to adjust based on content */
+                min-height: calc(100vh - 40px); /* Ensure it still takes up space */
+            }
+            body {
+                align-items: flex-start; /* Align to top on smaller screens */
+            }
+        }
+
+        /* Drag and drop area styling */
+        .drag-drop-area {
+            border: 2px dashed rgba(127, 140, 141, 0.5);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 10px;
+            flex-grow: 1; /* Allow it to take available space */
+        }
+
+        /* Drag and drop area hover and active states */
+        .drag-drop-area:hover, .drag-drop-area.drag-over {
+            border-color: #3498db;
+            background: rgba(52, 152, 219, 0.1);
+        }
+
+        .drag-drop-text {
+            color: #bdc3c7;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Left Panel - Controls -->
+        <div class="panel left-panel">
+            <h1 class="title">🔥 YouTube Thumbnail Generator</h1>
+            
+            <!-- File Selection Section -->
+            <div class="section">
+                <div class="section-title">📁 File Selection</div>
+                
+                <!-- Image Selection -->
+                <div class="form-group">
+                    <div class="form-row">
+                        <label>Image:</label>
+                        <!-- Custom drag-and-drop area for image input -->
+                        <div class="drag-drop-area" onclick="document.getElementById('imageInput').click()">
+                            <div class="drag-drop-text">Click to select or drag & drop an image</div>
+                        </div>
+                        <input type="file" id="imageInput" accept="image/*">
+                    </div>
+                    <div class="file-status" id="imageStatus">No image selected</div>
+                </div>
+                
+                <!-- Font Selection -->
+                <div class="form-group">
+                    <div class="form-row">
+                        <label>Font:</label>
+                        <div class="font-controls">
+                            <!-- Dropdown for system fonts -->
+                            <select id="systemFont">
+                                <option value="Arial, sans-serif">Arial</option>
+                                <option value="'Times New Roman', serif">Times New Roman</option>
+                                <option value="Calibri, sans-serif">Calibri</option>
+                                <option value="Verdana, sans-serif">Verdana</option>
+                                <option value="Tahoma, sans-serif">Tahoma</option>
+                                <option value="'Comic Sans MS', cursive">Comic Sans MS</option>
+                                <option value="Impact, sans-serif">Impact</option>
+                                <option value="Georgia, serif">Georgia</option>
+                                <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+                                <option value="'Courier New', monospace">Courier New</option>
+                            </select>
+                            <!-- Button to browse custom TTF/OTF/WOFF/WOFF2 fonts -->
+                            <label class="file-input-label btn-secondary" for="customFont">Browse TTF</label>
+                            <input type="file" id="customFont" accept=".ttf,.otf,.woff,.woff2">
+                            <span class="font-status" id="fontStatus">✓ System font</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Output Folder (Note for web - always download to default) -->
+                <div class="form-group">
+                    <div class="form-row">
+                        <label>Output:</label>
+                        <span class="file-status success">Ready to download</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Text Content Section -->
+            <div class="section">
+                <div class="section-title">✏️ Text Content</div>
+                <div class="form-group">
+                    <label for="textInput">Enter your story (will be automatically wrapped):</label>
+                    <textarea id="textInput" placeholder="Enter your story text here..."></textarea>
+                </div>
+            </div>
+            
+            <!-- Settings Section -->
+            <div class="section">
+                <div class="section-title">⚙️ Settings</div>
+                <div class="form-row">
+                    <label for="fontSize">Font Size:</label>
+                    <input type="number" id="fontSize" value="55" min="10" max="200">
+                </div>
+                <div class="form-row">
+                    <label for="maxChars">Max chars per line (approx):</label>
+                    <input type="number" id="maxChars" value="35" min="10" max="100">
+                </div>
+                <!-- New Layout Control -->
+                <div class="form-row">
+                    <label for="layoutSelect">Layout:</label>
+                    <select id="layoutSelect">
+                        <option value="imageRightTextLeft">Image Right, Text Left (Default)</option>
+                        <option value="imageLeftTextRight">Image Left, Text Right</option>
+                    </select>
+                </div>
+                <!-- New Color Controls -->
+                <div class="form-row">
+                    <label for="line1ColorInput">Line 1 Color:</label>
+                    <input type="color" id="line1ColorInput" value="#FFFFFF">
+                </div>
+                <div class="form-row">
+                    <label for="line2ColorInput">Line 2 Color:</label>
+                    <input type="color" id="line2ColorInput" value="#FFD700">
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="button-group">
+                <button class="btn btn-success" onclick="previewThumbnail()">👁️ Preview</button>
+                <button class="btn btn-danger" onclick="saveThumbnail()">💾 Download Thumbnail</button>
+            </div>
+            
+            <!-- Status Message Area -->
+            <div class="status success" id="statusLabel">Ready! Enter text and click Preview.</div>
+        </div>
+        
+        <!-- Right Panel - Preview -->
+        <div class="panel right-panel">
+            <div class="preview-title">📺 Preview</div>
+            
+            <div class="preview-section">
+                <!-- Moved loading indicator outside preview-container -->
+                <div class="loading" id="loadingIndicator">
+                    <div class="spinner"></div>
+                    <div>Generating thumbnail...</div>
+                </div>
+                <div class="preview-container" id="previewContainer">
+                    <!-- Placeholder content for when no preview is generated -->
+                    <div class="preview-placeholder">
+                        Enter text and click "Preview" to see your thumbnail
+                    </div>
+                </div>
+                
+                <!-- Instructions for text styling -->
+                <div class="instructions">
+                    💡 Pattern: Line 1 (White) → Line 2 (Yellow) → Line 3 (White) → Line 4 (Yellow)...<br>
+                    <small>Preview updates automatically when you change settings!</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables to store image, font data, and the current generated thumbnail canvas
+        let selectedImage = null;
+        let customFontData = null; // Stores the name, URL, and raw data of the custom font
+        let customFontLoaded = false; // Flag to indicate if the custom font has been successfully loaded by the browser
+        let currentThumbnail = null; // Stores the canvas element of the last generated thumbnail
+        
+        // New global variables for layout and colors
+        let currentLayout = 'imageRightTextLeft'; // Default layout
+        let line1Color = '#FFFFFF'; // Default color for line 1 (white)
+        let line2Color = '#FFD700'; // Default color for line 2 (yellow)
+
+        // Constants for thumbnail dimensions, image scaling, text padding, etc.
+        const THUMBNAIL_WIDTH = 1280; // Standard YouTube thumbnail width
+        const THUMBNAIL_HEIGHT = 720; // Standard YouTube thumbnail height
+        const IMAGE_WIDTH_RATIO = 0.45; // Proportion of the thumbnail width for the image
+        const TEXT_PADDING = 40; // Padding around the text area
+        const BACKGROUND_COLOR = '#1a1a1a'; // Dark background color for the thumbnail
+        const LINE_SPACING = 15; // Vertical spacing between lines of text
+
+        // --- Event Listeners Setup ---
+        // Ensures the DOM is fully loaded before attaching event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            setupDragDrop();
+            // Initialize color inputs with default values
+            document.getElementById('line1ColorInput').value = line1Color;
+            document.getElementById('line2ColorInput').value = line2Color;
+        });
+        
+        // Function to set up all necessary event listeners for user interactions
+        function setupEventListeners() {
+            // Listener for image file input changes
+            document.getElementById('imageInput').addEventListener('change', handleImageSelect);
+            
+            // Listener for custom font file input changes
+            document.getElementById('customFont').addEventListener('change', handleCustomFontSelect);
+            
+            // Listener for system font dropdown selection changes
+            document.getElementById('systemFont').addEventListener('change', handleSystemFontSelect);
+            
+            // Listeners for settings changes (font size, max characters, text input)
+            // These trigger an auto-update of the preview for a dynamic experience
+            document.getElementById('fontSize').addEventListener('input', autoUpdatePreview);
+            document.getElementById('maxChars').addEventListener('input', autoUpdatePreview);
+            document.getElementById('textInput').addEventListener('input', debounce(autoUpdatePreview, 500));
+
+            // New: Listeners for layout and color changes
+            document.getElementById('layoutSelect').addEventListener('change', handleLayoutChange);
+            document.getElementById('line1ColorInput').addEventListener('input', handleColorChange);
+            document.getElementById('line2ColorInput').addEventListener('input', handleColorChange);
+        }
+        
+        // Function to set up drag-and-drop functionality for the image input area
+        function setupDragDrop() {
+            const dragDropArea = document.querySelector('.drag-drop-area');
+            
+            // Prevent default drag behaviors and add 'drag-over' class for visual feedback
+            dragDropArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                dragDropArea.classList.add('drag-over');
+            });
+            
+            // Remove 'drag-over' class when drag leaves the area
+            dragDropArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                dragDropArea.classList.remove('drag-over');
+            });
+            
+            // Handle dropped files
+            dragDropArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                dragDropArea.classList.remove('drag-over');
+                
+                const files = e.dataTransfer.files;
+                // Process the first image file if dropped
+                if (files.length > 0 && files[0].type.startsWith('image/')) {
+                    handleImageFile(files[0]);
+                } else {
+                    updateStatus('Please drop an image file.', 'error');
+                }
+            });
+        }
+        
+        // Handles selection of an image file via the input element
+        function handleImageSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                handleImageFile(file);
+            }
+        }
+        
+        // Processes the selected image file (from input or drag-drop)
+        function handleImageFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                selectedImage = new Image();
+                selectedImage.onload = function() {
+                    // Update UI status for image selection
+                    document.getElementById('imageStatus').textContent = `✓ ${file.name}`;
+                    document.getElementById('imageStatus').className = 'file-status success';
+                    updateStatus('Image selected successfully!', 'success');
+                    autoUpdatePreview(); // Trigger preview update after image loads
+                };
+                selectedImage.onerror = function() {
+                    updateStatus('Failed to load image. Please try another file.', 'error');
+                    selectedImage = null; // Reset image if loading fails
+                    document.getElementById('imageStatus').textContent = 'Error loading image';
+                    document.getElementById('imageStatus').className = 'file-status error';
+                };
+                selectedImage.src = e.target.result; // Set image source to data URL
+            };
+            reader.readAsDataURL(file); // Read file as data URL
+        }
+        
+        // Handles selection of a custom font file
+        async function handleCustomFontSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    // Sanitize font name for CSS font-family property
+                    const fontName = file.name.split('.')[0].replace(/[^a-zA-Z0-9]/g, '');
+                    
+                    customFontData = {
+                        name: fontName,
+                        data: e.target.result, // ArrayBuffer data
+                        url: URL.createObjectURL(new Blob([e.target.result], { type: file.type })) // Blob URL for FontFace
+                    };
+                    
+                    // Create and load a new FontFace object
+                    const customFontFace = new FontFace(fontName, `url(${customFontData.url})`);
+                    
+                    try {
+                        const loadedFont = await customFontFace.load();
+                        document.fonts.add(loadedFont); // Add the font to the document's font collection
+                        customFontLoaded = true; // Set flag to true on successful load
+                        
+                        // Clear system font selection as custom font is preferred
+                        document.getElementById('systemFont').value = '';
+                        
+                        // Update UI status for custom font
+                        document.getElementById('fontStatus').textContent = `✓ Custom: ${file.name}`;
+                        document.getElementById('fontStatus').style.background = 'rgba(230, 126, 34, 0.2)';
+                        document.getElementById('fontStatus').style.color = '#e67e22';
+                        
+                        updateStatus('Custom font selected and loaded successfully!', 'success');
+                        autoUpdatePreview(); // Trigger a preview update after font loads
+                    } catch (error) {
+                        console.error("Error loading custom font:", error);
+                        updateStatus('❌ Failed to load custom font! Falling back to system font.', 'error');
+                        customFontLoaded = false; // Reset flag
+                        customFontData = null; // Clear custom font data
+                        // Revert to system font status
+                        document.getElementById('fontStatus').textContent = '✓ System font';
+                        document.getElementById('fontStatus').style.background = 'rgba(39, 174, 96, 0.2)';
+                        document.getElementById('fontStatus').style.color = '#27ae60';
+                    }
+                };
+                reader.readAsArrayBuffer(file); // Read font file as ArrayBuffer
+            }
+        }
+        
+        // Handles selection of a system font from the dropdown
+        function handleSystemFontSelect() {
+            customFontData = null; // Clear custom font data
+            customFontLoaded = false; // Reset custom font flag
+            document.getElementById('customFont').value = ''; // Clear custom font input
+            
+            // Update UI status for system font
+            document.getElementById('fontStatus').textContent = '✓ System font';
+            document.getElementById('fontStatus').style.background = 'rgba(39, 174, 96, 0.2)';
+            document.getElementById('fontStatus').style.color = '#27ae60';
+            
+            const selectedFont = document.getElementById('systemFont').value;
+            updateStatus(`System font selected: ${selectedFont.split(',')[0]}`, 'success');
+            autoUpdatePreview(); // Trigger preview update
+        }
+
+        // New: Handles changes to the layout selection
+        function handleLayoutChange() {
+            currentLayout = document.getElementById('layoutSelect').value;
+            updateStatus(`Layout changed to: ${currentLayout === 'imageRightTextLeft' ? 'Image Right, Text Left' : 'Image Left, Text Right'}`, 'success');
+            autoUpdatePreview();
+        }
+
+        // New: Handles changes to the color inputs
+        function handleColorChange() {
+            line1Color = document.getElementById('line1ColorInput').value;
+            line2Color = document.getElementById('line2ColorInput').value;
+            updateStatus('Colors updated!', 'success');
+            autoUpdatePreview();
+        }
+        
+        // Updates the main status message displayed at the bottom of the left panel
+        function updateStatus(message, type = 'success') {
+            const statusLabel = document.getElementById('statusLabel');
+            statusLabel.textContent = message;
+            statusLabel.className = `status ${type}`; // Apply appropriate styling based on type
+        }
+        
+        // Debounce function to limit the rate at which a function is called
+        // Useful for input events to prevent excessive updates
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+        
+        // Function to automatically update the preview when settings or text change
+        async function autoUpdatePreview() {
+            const textContent = document.getElementById('textInput').value.trim();
+            // Only attempt to generate a preview if there's text content
+            if (textContent) {
+                await previewThumbnail();
+            } else {
+                // If text is empty, clear the preview and show placeholder
+                const previewContainer = document.getElementById('previewContainer');
+                previewContainer.innerHTML = `
+                    <div class="preview-placeholder">
+                        Enter text and click "Preview" to see your thumbnail
+                    </div>
+                `;
+                currentThumbnail = null; // Clear the generated thumbnail reference
+                updateStatus('Ready! Enter text and click Preview.', 'success');
+            }
+        }
+        
+        // Intelligent text wrapping function based on character count (initial split)
+        // This function provides logical lines, which are then precisely wrapped by canvas's measureText
+        function wrapTextIntelligently(text, maxCharsPerLine) {
+            if (!text.trim()) return [];
+
+            // Split by common sentence-ending punctuation, keeping the punctuation with the sentence
+            // Also handle newline characters as explicit line breaks
+            // This regex splits by '.', '!', '?', '…', or '\n' followed by optional whitespace,
+            // but keeps the delimiter as part of the segment.
+            let segments = text.split(/([.!?…\n]+)\s*/).filter(Boolean); 
+
+            const lines = [];
+            let currentLine = '';
+
+            for (let i = 0; i < segments.length; i++) {
+                let segment = segments[i].trim();
+                if (!segment) continue; // Skip empty segments
+
+                // Handle explicit newlines from the input text as hard breaks
+                if (segment === '\n') {
+                    if (currentLine) {
+                        lines.push(currentLine);
+                    }
+                    currentLine = ''; // Start a new line
+                    continue;
+                }
+
+                // If the segment is just a punctuation mark that was split off, append it to the current line
+                // This prevents isolated punctuation marks as new lines
+                if (currentLine && segment.match(/^[.!?…]+$/)) {
+                    currentLine += segment;
+                    continue;
+                }
+                
+                // Try to add the segment to the current line
+                const testLine = currentLine ? currentLine + ' ' + segment : segment;
+
+                // Check if the testLine (character count) exceeds the maxCharsPerLine
+                if (testLine.length <= maxCharsPerLine) {
+                    currentLine = testLine;
+                } else {
+                    // If it exceeds, push the current line (if not empty)
+                    if (currentLine) {
+                        lines.push(currentLine);
+                    }
+                    // Then, break the current segment into words and fit them within maxCharsPerLine
+                    const words = segment.split(/\s+/);
+                    let tempLine = '';
+                    for (const word of words) {
+                        if (!word) continue; // Skip empty words
+
+                        if ((tempLine + (tempLine ? ' ' : '') + word).length <= maxCharsPerLine) {
+                            tempLine += (tempLine ? ' ' : '') + word;
+                        } else {
+                            if (tempLine) lines.push(tempLine);
+                            tempLine = word; // Start a new line with the current word
+                        }
+                    }
+                    currentLine = tempLine; // The last part of the segment becomes the new currentLine
+                }
+            }
+
+            // Add any remaining text as the last line
+            if (currentLine) {
+                lines.push(currentLine);
+            }
+
+            return lines.filter(line => line.trim()); // Filter out any empty lines
+        }
+        
+        // --- Thumbnail Generation and Display ---
+        
+        // Main function to generate and display the thumbnail preview
+        async function previewThumbnail() {
+            const textContent = document.getElementById('textInput').value.trim();
+            if (!textContent) {
+                updateStatus('Please enter some text to generate a thumbnail!', 'error');
+                return;
+            }
+            
+            showLoading(true); // Show loading indicator
+            updateStatus('Generating preview...', 'warning');
+            
+            try {
+                const fontSize = parseInt(document.getElementById('fontSize').value) || 95;
+                const maxChars = parseInt(document.getElementById('maxChars').value) || 17;
+                
+                // Get logical lines based on character count
+                // This is the array of lines that will be drawn, each representing a "logical" line
+                const textLines = wrapTextIntelligently(textContent, maxChars);
+                
+                // Create the thumbnail canvas using the logical lines and settings
+                currentThumbnail = await createThumbnail(textLines, fontSize);
+                
+                displayPreview(currentThumbnail); // Display the generated thumbnail
+                updateStatus(`✅ Preview ready! (${textLines.length} logical lines)`, 'success');
+            } catch (error) {
+                updateStatus('❌ Preview failed! Check console for details.', 'error');
+                console.error('Error generating preview:', error); // Log error for debugging
+            } finally {
+                showLoading(false); // Hide loading indicator
+            }
+        }
+        
+        // Shows or hides the loading indicator
+        function showLoading(show) {
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            if (loadingIndicator) { // Add a check to ensure the element exists
+                loadingIndicator.style.display = show ? 'block' : 'none';
+            }
+        }
+        
+        // Core function to draw the thumbnail on a canvas
+        async function createThumbnail(textLines, fontSize) {
+            return new Promise(async (resolve) => {
+                const canvas = document.createElement('canvas');
+                canvas.width = THUMBNAIL_WIDTH;
+                canvas.height = THUMBNAIL_HEIGHT;
+                const ctx = canvas.getContext('2d');
+                
+                // Fill background of the canvas
+                ctx.fillStyle = BACKGROUND_COLOR;
+                ctx.fillRect(0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
+                
+                // IMPORTANT: Wait for all fonts (including custom ones) to be loaded before drawing text
+                await document.fonts.ready;
+                
+                // Determine which font family to use (custom if loaded, otherwise system font)
+                const fontFamily = customFontData && customFontLoaded ? `'${customFontData.name}'` : document.getElementById('systemFont').value;
+                ctx.font = `bold ${fontSize}px ${fontFamily}`; // Set font style and size
+                ctx.textBaseline = 'top'; // Align text from the top of the line
+                
+                // Calculate positions based on selected layout
+                let imgX, textX;
+                const imageAreaWidth = THUMBNAIL_WIDTH * IMAGE_WIDTH_RATIO;
+                const textAreaWidth = THUMBNAIL_WIDTH - imageAreaWidth - (TEXT_PADDING * 2);
+
+                if (currentLayout === 'imageRightTextLeft') {
+                    imgX = THUMBNAIL_WIDTH - imageAreaWidth;
+                    textX = TEXT_PADDING;
+                } else { // imageLeftTextRight
+                    imgX = 0;
+                    textX = imageAreaWidth + TEXT_PADDING;
+                }
+
+                // Draw the selected image if available
+                if (selectedImage) {
+                    const imgHeight = THUMBNAIL_HEIGHT;
+                    
+                    // Calculate scale to fit image within its designated area
+                    const scale = Math.min(imageAreaWidth / selectedImage.width, imgHeight / selectedImage.height);
+                    const scaledWidth = selectedImage.width * scale;
+                    const scaledHeight = selectedImage.height * scale;
+                    
+                    // Position image
+                    const imgY = (THUMBNAIL_HEIGHT - scaledHeight) / 2; // Vertically center
+                    
+                    ctx.drawImage(selectedImage, imgX, imgY, scaledWidth, scaledHeight);
+                }
+                
+                let linesToDraw = []; // This will hold the final lines to render, with their colors and measured heights
+                let accumulatedHeight = 0; // Tracks total height of all rendered lines for vertical centering
+
+                // Iterate through each logical line generated by wrapTextIntelligently
+                textLines.forEach((lineText, logicalLineIndex) => {
+                    // Determine color based on the logical line's index (0=Line 1 Color, 1=Line 2 Color, etc.)
+                    const color = logicalLineIndex % 2 === 0 ? line1Color : line2Color;
+                    
+                    // Measure the actual pixel height of this line with the current font settings
+                    const metrics = ctx.measureText(lineText);
+                    const lineHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+
+                    // Add the line to our list of lines to draw
+                    linesToDraw.push({ text: lineText, color: color, height: lineHeight });
+                    accumulatedHeight += lineHeight + LINE_SPACING;
+                });
+                
+                // Remove the extra LINE_SPACING added after the very last line
+                accumulatedHeight = Math.max(0, accumulatedHeight - LINE_SPACING);
+                
+                // Calculate the starting Y position to vertically center the entire block of text
+                let currentY = (THUMBNAIL_HEIGHT - accumulatedHeight) / 2;
+                
+                // Draw each line onto the canvas
+                linesToDraw.forEach(item => {
+                    ctx.fillStyle = item.color; // Set the determined color for this line
+                    // Draw text. Note: text might visually extend beyond textAreaWidth if maxChars is large
+                    // and the font is wide, as we are no longer forcing pixel-based wraps here.
+                    ctx.fillText(item.text, textX, currentY); 
+                    currentY += item.height + LINE_SPACING; // Move Y down for the next line
+                });
+                
+                resolve(canvas); // Resolve the promise with the generated canvas
+            });
+        }
+        
+        // Displays the generated canvas as an image in the preview container
+        function displayPreview(canvas) {
+            const previewContainer = document.getElementById('previewContainer');
+            
+            // Clear any existing content (like the placeholder text)
+            previewContainer.innerHTML = '';
+            
+            // Create an <img> element to display the canvas content
+            const previewImg = document.createElement('img');
+            previewImg.src = canvas.toDataURL('image/png'); // Convert canvas to PNG data URL
+            previewImg.className = 'preview-canvas'; // Apply styling
+            previewImg.alt = 'Generated YouTube Thumbnail Preview';
+            
+            previewContainer.appendChild(previewImg); // Add image to the preview container
+        }
+        
+        // Function to save the generated thumbnail as a PNG file
+        function saveThumbnail() {
+            if (!currentThumbnail) {
+                updateStatus('Please generate a preview first before downloading!', 'error');
+                return;
+            }
+            
+            try {
+                // Create a temporary anchor element for downloading
+                const link = document.createElement('a');
+                link.download = 'youtube_thumbnail.png'; // Suggested filename
+                link.href = currentThumbnail.toDataURL('image/png'); // Get data URL from canvas
+                
+                // Programmatically click the link to trigger download
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link); // Clean up the temporary link
+                
+                updateStatus('✅ Thumbnail downloaded successfully!', 'success');
+            } catch (error) {
+                updateStatus('❌ Download failed! Check console for details.', 'error');
+                console.error('Error downloading thumbnail:', error);
+            }
+        }
+    </script>
+</body>
+</html>
